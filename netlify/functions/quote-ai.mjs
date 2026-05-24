@@ -7,38 +7,58 @@ export default async (req) => {
 
   if (!apiKey) {
     return new Response(JSON.stringify({
-      price: '$25+',
-      reason: 'OPENAI_API_KEY missing in Netlify environment variables.'
+      price: '$250+ one-time',
+      reason: 'OPENAI_API_KEY missing in Netlify environment variables. Manual quote needed so the business does not undercharge.',
+      recommendedPackage: 'Manual Quote Required'
     }), { headers: { 'Content-Type': 'application/json' } });
   }
 
   const order = await req.json();
 
-  const prompt = `You are pricing custom digital services for AI Opportunities. Return ONLY valid JSON with exactly these keys: "price", "reason", "recommendedPackage".
+  const prompt = `You are the AI Opportunities pricing assistant. Return ONLY valid JSON with exactly these keys: "price", "reason", "recommendedPackage".
+
+Your main job is to protect the business from undercharging. The customer's selected budget is NOT the final price. It is only their preferred range. Calculate price based on workload, deliverables, complexity, turnaround speed, add-ons, video count, website features, chatbot/custom panel/membership setup, and marketing work.
 
 The client request is:
 ${JSON.stringify(order)}
 
-Pricing rules:
-- Always respect the selected budget vibe first.
-- starter budget means roughly $5-$100.
-- serious budget means roughly $100-$300.
-- premium budget means $300+.
-- You can go above the selected budget only when the request clearly needs more work. If you go above budget, explain why in one short note.
-- AI Video starts at $5 per video.
-- Editing starts at $5 per quick edit.
-- A simple one-page website starts around $50-$100.
-- A one-page website with a custom order form, Stripe deposit button, and a basic chatbot should usually be $100-$150 one-time, not $300.
-- Only quote $300+ for bigger builds like multiple pages, memberships, advanced chatbot, automations, or a full custom platform.
-- If quantity is 2 AI videos and frequency is weekly, do NOT quote $300/mo. Use around $10/week to $25/week depending on edits.
-- If frequency is weekly, return a WEEKLY price like "$10/week", not monthly.
-- If frequency is twice-weekly, return a weekly price for that weekly amount.
-- If frequency is daily, return a weekly estimate unless the user clearly asks monthly.
-- If frequency is monthly, return monthly.
-- If one-time, return one-time.
-- Keep prices easy yes and affordable.
-- Never return undefined.
-- Keep reason short and clear.`;
+Hard pricing rules:
+- Do NOT let the customer's selected budget control the final price.
+- Do NOT discount automatically.
+- Do NOT say a project fits the selected budget unless the calculated price is actually inside that range.
+- If the selected budget is too low, clearly say it does not fully cover the request and offer a smaller budget version.
+- Simple edit: $25 minimum.
+- Basic video edit: $15 per video minimum.
+- AI video: $25 per video minimum.
+- 10 edited videos: $150 minimum.
+- Basic one-page website: $150 minimum.
+- Custom branded website: $250 minimum.
+- Website with chatbot, custom order panel, or memberships: $400 minimum.
+- Website plus video editing package: $350 minimum.
+- Chatbot setup: $250 minimum.
+- Automation setup: $250 minimum.
+- Full digital business setup: $750 minimum.
+- Rush delivery: add $50-$150.
+- Marketing strategy or campaign setup: add $100-$300.
+- Never price a website under $150.
+- Never price 10 edited videos under $150.
+- Never price a website plus videos under $350.
+- Never price chatbot, automation, membership setup, or custom order system under $250.
+- If someone asks for a fast custom website, watermark/branding, marketing videos, and 10 edited videos, quote $400-$550+ one-time even if they selected a low budget.
+
+Budget handling:
+- Starter Budget means roughly $100-$250.
+- Standard Budget means roughly $250-$500.
+- Premium Budget means roughly $500-$1,000.
+- Big Project means $1,000+.
+- If the order mentions $5-$100 or any tiny budget, treat it as too low for websites, automation, chatbot, memberships, or 10+ videos.
+
+Response rules:
+- price: Give the real calculated price, such as "$400-$550 one-time" or "$150-$250/week".
+- reason: Keep it short but include a budget check if their budget is too low.
+- recommendedPackage: Use a package name like "Starter Website", "Custom Website + Video Package", "Automation Setup", or "Full Digital Business Setup".
+- Always protect the business.
+- Never return undefined.`;
 
   try {
     const response = await fetch('https://api.openai.com/v1/responses', {
@@ -50,15 +70,15 @@ Pricing rules:
       body: JSON.stringify({
         model: 'gpt-4.1-mini',
         input: prompt,
-        temperature: 0.15
+        temperature: 0.1
       })
     });
 
     if (!response.ok) {
       return new Response(JSON.stringify({
-        price: '$75 one-time',
-        reason: 'Starter estimate based on the selected budget and request details.',
-        recommendedPackage: 'Starter Custom Order'
+        price: '$250+ one-time',
+        reason: 'Manual review needed. The request may be outside the selected budget, so this quote uses the business minimum instead of undercharging.',
+        recommendedPackage: 'Manual Quote Required'
       }), { headers: { 'Content-Type': 'application/json' } });
     }
 
@@ -73,15 +93,15 @@ Pricing rules:
     const parsed = JSON.parse(cleaned);
 
     return new Response(JSON.stringify({
-      price: parsed.price || '$75 one-time',
-      reason: parsed.reason || 'AI reviewed the order using the selected budget and request details.',
+      price: parsed.price || '$250+ one-time',
+      reason: parsed.reason || 'AI reviewed the order using business-safe minimum pricing so the request does not get undercharged.',
       recommendedPackage: parsed.recommendedPackage || 'Custom Digital Package'
     }), { headers: { 'Content-Type': 'application/json' } });
   } catch (error) {
     return new Response(JSON.stringify({
-      price: '$75 one-time',
-      reason: 'Backup quote based on the selected budget and request details.',
-      recommendedPackage: 'Starter Custom Order'
+      price: '$250+ one-time',
+      reason: 'Manual review needed. Backup pricing uses the business minimum instead of a low automatic quote.',
+      recommendedPackage: 'Manual Quote Required'
     }), { headers: { 'Content-Type': 'application/json' } });
   }
 };
