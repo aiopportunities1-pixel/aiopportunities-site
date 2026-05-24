@@ -27,10 +27,14 @@ Hard pricing rules:
 - Do NOT discount automatically.
 - Do NOT say a project fits the selected budget unless the calculated price is actually inside that range.
 - If the selected budget is too low, clearly say it does not fully cover the request and offer a smaller budget version.
+- AI videos are $5 per video. This is the correct AI video price.
+- If the request is ONLY AI videos with no editing, website, marketing, rush, chatbot, or automation, calculate quantity x $5.
+- 5 AI videos only = $25.
+- 10 AI videos only = $50.
+- Do not apply website or editing minimums to AI-video-only orders.
 - Simple edit: $25 minimum.
-- Basic video edit: $15 per video minimum.
-- AI video: $25 per video minimum.
-- 10 edited videos: $150 minimum.
+- Basic video editing: $15 per video minimum. This applies to editing, not AI videos.
+- 10 edited videos: $150 minimum. This applies to edited videos, not AI videos.
 - Basic one-page starter website: $100 minimum. This is the lowest allowed website price.
 - Basic one-page website with light personalization: $100-$150 one-time.
 - Professional business website: $200 minimum.
@@ -45,24 +49,24 @@ Hard pricing rules:
 - Never price any website under $100.
 - Never price a professional business website under $200.
 - Never price 10 edited videos under $150.
-- Never price a website plus videos under $350.
+- Never price a website plus edited videos under $350.
 - Never price chatbot, automation, membership setup, or custom order system under $250.
 - If someone asks for a basic website only, quote around $100-$150 one-time.
 - If someone asks for a professional business website, quote $200-$300+ one-time.
 - If someone asks for a fast custom website, watermark/branding, marketing videos, and 10 edited videos, quote $400-$550+ one-time even if they selected a low budget.
 
 Budget handling:
-- Starter Budget means roughly $100-$250.
+- Starter Budget means roughly $100-$250 for bigger services, but AI-video-only orders can be below $100 because AI videos are $5 each.
 - Standard Budget means roughly $250-$500.
 - Premium Budget means roughly $500-$1,000.
 - Big Project means $1,000+.
-- If the order mentions $5-$100 or any tiny budget, basic website can still be $100, but professional websites, automation, chatbot, memberships, or 10+ videos must be higher.
+- If the order mentions $5-$100 or any tiny budget, AI-video-only orders can fit if quantity x $5 stays in budget. Basic website can still be $100, but professional websites, automation, chatbot, memberships, editing packages, or 10+ edited videos must be higher.
 
 Response rules:
-- price: Give the real calculated price, such as "$100-$150 one-time", "$200-$300 one-time", "$400-$550 one-time", or "$150-$250/week".
+- price: Give the real calculated price, such as "$25 one-time", "$50 one-time", "$100-$150 one-time", "$200-$300 one-time", "$400-$550 one-time", or "$150-$250/week".
 - reason: Keep it short but include a budget check if their budget is too low.
-- recommendedPackage: Use a package name like "Basic Starter Website", "Professional Business Website", "Custom Website + Video Package", "Automation Setup", or "Full Digital Business Setup".
-- Always protect the business.
+- recommendedPackage: Use a package name like "AI Video Pack", "Basic Starter Website", "Professional Business Website", "Custom Website + Video Package", "Automation Setup", or "Full Digital Business Setup".
+- Always protect the business, but do not overprice AI-video-only orders.
 - Never return undefined.`;
 
   try {
