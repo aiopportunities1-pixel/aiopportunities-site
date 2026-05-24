@@ -20,8 +20,16 @@ The client request is:
 ${JSON.stringify(order)}
 
 Pricing rules:
+- Always respect the selected budget vibe first.
+- starter budget means roughly $5-$100.
+- serious budget means roughly $100-$300.
+- premium budget means $300+.
+- You can go above the selected budget only when the request clearly needs more work. If you go above budget, explain why in one short note.
 - AI Video starts at $5 per video.
 - Editing starts at $5 per quick edit.
+- A simple one-page website starts around $50-$100.
+- A one-page website with a custom order form, Stripe deposit button, and a basic chatbot should usually be $100-$150 one-time, not $300.
+- Only quote $300+ for bigger builds like multiple pages, memberships, advanced chatbot, automations, or a full custom platform.
 - If quantity is 2 AI videos and frequency is weekly, do NOT quote $300/mo. Use around $10/week to $25/week depending on edits.
 - If frequency is weekly, return a WEEKLY price like "$10/week", not monthly.
 - If frequency is twice-weekly, return a weekly price for that weekly amount.
@@ -42,15 +50,15 @@ Pricing rules:
       body: JSON.stringify({
         model: 'gpt-4.1-mini',
         input: prompt,
-        temperature: 0.2
+        temperature: 0.15
       })
     });
 
     if (!response.ok) {
       return new Response(JSON.stringify({
-        price: '$10/week',
-        reason: 'Starter estimate based on low-cost AI video pricing.',
-        recommendedPackage: 'Weekly AI Video Starter'
+        price: '$75 one-time',
+        reason: 'Starter estimate based on the selected budget and request details.',
+        recommendedPackage: 'Starter Custom Order'
       }), { headers: { 'Content-Type': 'application/json' } });
     }
 
@@ -65,15 +73,15 @@ Pricing rules:
     const parsed = JSON.parse(cleaned);
 
     return new Response(JSON.stringify({
-      price: parsed.price || '$10/week',
-      reason: parsed.reason || 'AI reviewed the weekly order using affordable starter pricing.',
+      price: parsed.price || '$75 one-time',
+      reason: parsed.reason || 'AI reviewed the order using the selected budget and request details.',
       recommendedPackage: parsed.recommendedPackage || 'Custom Digital Package'
     }), { headers: { 'Content-Type': 'application/json' } });
   } catch (error) {
     return new Response(JSON.stringify({
-      price: '$10/week',
-      reason: 'Backup quote based on 2 AI videos weekly at $5 each.',
-      recommendedPackage: 'Weekly AI Video Starter'
+      price: '$75 one-time',
+      reason: 'Backup quote based on the selected budget and request details.',
+      recommendedPackage: 'Starter Custom Order'
     }), { headers: { 'Content-Type': 'application/json' } });
   }
 };
