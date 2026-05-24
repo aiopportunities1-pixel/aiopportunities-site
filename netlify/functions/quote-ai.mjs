@@ -7,7 +7,7 @@ export default async (req) => {
 
   if (!apiKey) {
     return new Response(JSON.stringify({
-      price: '$75+',
+      price: '$25+',
       reason: 'OPENAI_API_KEY missing in Netlify environment variables.'
     }), { headers: { 'Content-Type': 'application/json' } });
   }
@@ -19,15 +19,18 @@ export default async (req) => {
 The client request is:
 ${JSON.stringify(order)}
 
-Rules:
+Pricing rules:
+- AI Video starts at $5 per video.
+- Editing starts at $5 per quick edit.
+- If quantity is 2 AI videos and frequency is weekly, do NOT quote $300/mo. Use around $10/week to $25/week depending on edits.
+- If frequency is weekly, return a WEEKLY price like "$10/week", not monthly.
+- If frequency is twice-weekly, return a weekly price for that weekly amount.
+- If frequency is daily, return a weekly estimate unless the user clearly asks monthly.
+- If frequency is monthly, return monthly.
+- If one-time, return one-time.
+- Keep prices easy yes and affordable.
 - Never return undefined.
-- Never price everything at $50.
-- Make the price realistic and easy-yes.
-- If the user typed their service request in details, use that as the main source of truth.
-- If selected services exist, use them too.
-- If frequency is weekly, twice-weekly, monthly, or daily, price it as a recurring monthly service.
-- Use friendly ranges like "$150/mo", "$250/mo", "$300+", "$75 one-time".
-- Keep the reason short and clear.`;
+- Keep reason short and clear.`;
 
   try {
     const response = await fetch('https://api.openai.com/v1/responses', {
@@ -39,15 +42,15 @@ Rules:
       body: JSON.stringify({
         model: 'gpt-4.1-mini',
         input: prompt,
-        temperature: 0.3
+        temperature: 0.2
       })
     });
 
     if (!response.ok) {
       return new Response(JSON.stringify({
-        price: '$100+',
-        reason: 'AI pricing had a temporary issue. Use this as a starter quote and review manually.',
-        recommendedPackage: 'Starter Custom Order'
+        price: '$10/week',
+        reason: 'Starter estimate based on low-cost AI video pricing.',
+        recommendedPackage: 'Weekly AI Video Starter'
       }), { headers: { 'Content-Type': 'application/json' } });
     }
 
@@ -55,25 +58,22 @@ Rules:
     let text = data.output_text || '';
 
     if (!text && Array.isArray(data.output)) {
-      text = data.output
-        .flatMap(item => item.content || [])
-        .map(part => part.text || '')
-        .join('');
+      text = data.output.flatMap(item => item.content || []).map(part => part.text || '').join('');
     }
 
     const cleaned = text.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
 
     return new Response(JSON.stringify({
-      price: parsed.price || '$100+',
-      reason: parsed.reason || 'AI reviewed the order and created a starter quote.',
+      price: parsed.price || '$10/week',
+      reason: parsed.reason || 'AI reviewed the weekly order using affordable starter pricing.',
       recommendedPackage: parsed.recommendedPackage || 'Custom Digital Package'
     }), { headers: { 'Content-Type': 'application/json' } });
   } catch (error) {
     return new Response(JSON.stringify({
-      price: '$100+',
-      reason: 'AI quote failed for a moment. Use this as a starter estimate and review manually.',
-      recommendedPackage: 'Starter Custom Order'
+      price: '$10/week',
+      reason: 'Backup quote based on 2 AI videos weekly at $5 each.',
+      recommendedPackage: 'Weekly AI Video Starter'
     }), { headers: { 'Content-Type': 'application/json' } });
   }
 };
