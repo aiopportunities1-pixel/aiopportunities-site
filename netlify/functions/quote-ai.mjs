@@ -7,7 +7,7 @@ export default async (req) => {
 
   if (!apiKey) {
     return new Response(JSON.stringify({
-      price: '$250+ one-time',
+      price: '$100+ one-time',
       reason: 'OPENAI_API_KEY missing in Netlify environment variables. Manual quote needed so the business does not undercharge.',
       recommendedPackage: 'Manual Quote Required'
     }), { headers: { 'Content-Type': 'application/json' } });
@@ -17,7 +17,7 @@ export default async (req) => {
 
   const prompt = `You are the AI Opportunities pricing assistant. Return ONLY valid JSON with exactly these keys: "price", "reason", "recommendedPackage".
 
-Your main job is to protect the business from undercharging. The customer's selected budget is NOT the final price. It is only their preferred range. Calculate price based on workload, deliverables, complexity, turnaround speed, add-ons, video count, website features, chatbot/custom panel/membership setup, and marketing work.
+Your main job is to protect the business from undercharging while still keeping prices Easy Yes and affordable. The customer's selected budget is NOT the final price. It is only their preferred range. Calculate price based on workload, deliverables, complexity, turnaround speed, add-ons, video count, website features, chatbot/custom panel/membership setup, and marketing work.
 
 The client request is:
 ${JSON.stringify(order)}
@@ -31,7 +31,9 @@ Hard pricing rules:
 - Basic video edit: $15 per video minimum.
 - AI video: $25 per video minimum.
 - 10 edited videos: $150 minimum.
-- Basic one-page website: $150 minimum.
+- Basic one-page starter website: $100 minimum. This is the lowest allowed website price.
+- Basic one-page website with light personalization: $100-$150 one-time.
+- Professional business website: $200 minimum.
 - Custom branded website: $250 minimum.
 - Website with chatbot, custom order panel, or memberships: $400 minimum.
 - Website plus video editing package: $350 minimum.
@@ -40,10 +42,13 @@ Hard pricing rules:
 - Full digital business setup: $750 minimum.
 - Rush delivery: add $50-$150.
 - Marketing strategy or campaign setup: add $100-$300.
-- Never price a website under $150.
+- Never price any website under $100.
+- Never price a professional business website under $200.
 - Never price 10 edited videos under $150.
 - Never price a website plus videos under $350.
 - Never price chatbot, automation, membership setup, or custom order system under $250.
+- If someone asks for a basic website only, quote around $100-$150 one-time.
+- If someone asks for a professional business website, quote $200-$300+ one-time.
 - If someone asks for a fast custom website, watermark/branding, marketing videos, and 10 edited videos, quote $400-$550+ one-time even if they selected a low budget.
 
 Budget handling:
@@ -51,12 +56,12 @@ Budget handling:
 - Standard Budget means roughly $250-$500.
 - Premium Budget means roughly $500-$1,000.
 - Big Project means $1,000+.
-- If the order mentions $5-$100 or any tiny budget, treat it as too low for websites, automation, chatbot, memberships, or 10+ videos.
+- If the order mentions $5-$100 or any tiny budget, basic website can still be $100, but professional websites, automation, chatbot, memberships, or 10+ videos must be higher.
 
 Response rules:
-- price: Give the real calculated price, such as "$400-$550 one-time" or "$150-$250/week".
+- price: Give the real calculated price, such as "$100-$150 one-time", "$200-$300 one-time", "$400-$550 one-time", or "$150-$250/week".
 - reason: Keep it short but include a budget check if their budget is too low.
-- recommendedPackage: Use a package name like "Starter Website", "Custom Website + Video Package", "Automation Setup", or "Full Digital Business Setup".
+- recommendedPackage: Use a package name like "Basic Starter Website", "Professional Business Website", "Custom Website + Video Package", "Automation Setup", or "Full Digital Business Setup".
 - Always protect the business.
 - Never return undefined.`;
 
@@ -76,8 +81,8 @@ Response rules:
 
     if (!response.ok) {
       return new Response(JSON.stringify({
-        price: '$250+ one-time',
-        reason: 'Manual review needed. The request may be outside the selected budget, so this quote uses the business minimum instead of undercharging.',
+        price: '$100+ one-time',
+        reason: 'Manual review needed. Backup pricing uses the business website minimum instead of undercharging.',
         recommendedPackage: 'Manual Quote Required'
       }), { headers: { 'Content-Type': 'application/json' } });
     }
@@ -93,13 +98,13 @@ Response rules:
     const parsed = JSON.parse(cleaned);
 
     return new Response(JSON.stringify({
-      price: parsed.price || '$250+ one-time',
+      price: parsed.price || '$100+ one-time',
       reason: parsed.reason || 'AI reviewed the order using business-safe minimum pricing so the request does not get undercharged.',
       recommendedPackage: parsed.recommendedPackage || 'Custom Digital Package'
     }), { headers: { 'Content-Type': 'application/json' } });
   } catch (error) {
     return new Response(JSON.stringify({
-      price: '$250+ one-time',
+      price: '$100+ one-time',
       reason: 'Manual review needed. Backup pricing uses the business minimum instead of a low automatic quote.',
       recommendedPackage: 'Manual Quote Required'
     }), { headers: { 'Content-Type': 'application/json' } });
