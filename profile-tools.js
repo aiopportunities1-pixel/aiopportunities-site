@@ -1,1 +1,1 @@
-console.log('profile tools active');
+document.addEventListener('DOMContentLoaded',function(){var pay=document.querySelector('.stripe-button');if(pay){pay.style.display='none'}var b=document.querySelector('#orderForm button[type="submit"]');if(b){b.textContent='Submit and Pay Deposit'}var q=new URLSearchParams(location.search);if(q.get('checkout')==='success'){var box=document.getElementById('formSuccess');if(box){box.style.display='block';box.textContent='Your order has been sent and your review spot is secured.'}}});
