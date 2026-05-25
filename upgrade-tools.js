@@ -1,0 +1,85 @@
+function aiOppGetProfile(){try{return JSON.parse(localStorage.getItem('aiopp_profile')||'{}')}catch(e){return{}}}
+function aiOppSetProfile(profile){localStorage.setItem('aiopp_profile',JSON.stringify(profile||{}))}
+function aiOppStamp(){return new Date().toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
+function aiOppLogUpdate(text){
+  let feed=document.getElementById('workspaceUpdateFeed');
+  if(!feed){
+    const vault=document.querySelector('.vault-panel');
+    if(vault){feed=document.createElement('div');feed.id='workspaceUpdateFeed';feed.className='update-feed';vault.appendChild(feed)}
+  }
+  if(!feed)return;
+  const item=document.createElement('div');item.className='update-item';item.innerHTML='<strong>'+aiOppStamp()+'</strong><span>'+text+'</span>';
+  feed.prepend(item);
+  const updates=JSON.parse(localStorage.getItem('aiopp_updates')||'[]');updates.unshift({time:aiOppStamp(),text});localStorage.setItem('aiopp_updates',JSON.stringify(updates.slice(0,8)));
+}
+function aiOppLoadUpdates(){
+  const updates=JSON.parse(localStorage.getItem('aiopp_updates')||'[]');
+  updates.reverse().forEach(u=>aiOppLogUpdate(u.text));
+}
+function aiOppUpdateWorkspaceStatus(goal){
+  const bars=document.querySelectorAll('.progress-wrap i');
+  const widths={clients:['100%','70%','45%','20%'],videos:['100%','75%','60%','30%'],website:['100%','65%','55%','22%'],automation:['100%','70%','50%','25%'],full:['100%','80%','65%','35%']};
+  let key='clients';const g=String(goal||'').toLowerCase();
+  if(g.includes('video'))key='videos'; if(g.includes('website'))key='website'; if(g.includes('automation'))key='automation'; if(g.includes('full'))key='full';
+  bars.forEach((bar,i)=>bar.style.width=widths[key][i]||'35%');
+}
+function aiOppSyncWorkspace(){
+  const p=aiOppGetProfile();
+  const name=document.getElementById('workspaceName');
+  const email=document.getElementById('workspaceEmail');
+  const goal=document.getElementById('workspaceGoal');
+  const saved=document.getElementById('workspaceSaved');
+  if(name && p.name)name.value=p.name;
+  if(email && p.email)email.value=p.email;
+  if(goal && p.goal)goal.value=p.goal;
+  if(saved && (p.name||p.email||p.goal))saved.innerText='Workspace saved for '+(p.name||'client')+' • '+(p.goal||'Goal ready');
+  aiOppUpdateWorkspaceStatus(p.goal||goal?.value);
+}
+function aiOppSaveWorkspace(){
+  const name=document.getElementById('workspaceName')?.value.trim()||'';
+  const email=document.getElementById('workspaceEmail')?.value.trim()||'';
+  const goal=document.getElementById('workspaceGoal')?.value||'Need more clients';
+  const old=aiOppGetProfile();
+  const profile={...old,name,email,goal,lastUpdated:aiOppStamp(),memberStatus:old.memberStatus||'Guest / Not verified'};
+  aiOppSetProfile(profile);
+  const saved=document.getElementById('workspaceSaved');
+  if(saved)saved.innerText='Saved '+(name||'client')+' • '+goal+' • '+profile.lastUpdated;
+  aiOppUpdateWorkspaceStatus(goal);
+  aiOppLogUpdate('Workspace updated: '+(name||'Client')+' is focused on '+goal+'.');
+  const detail=document.getElementById('details');
+  if(detail && !detail.value.trim())detail.value='Client goal: '+goal+'. Need help building the best AI Opportunities package for this business.';
+}
+function aiOppIdeas(type,input){
+  const subject=input.trim()||'my business';
+  const lower=subject.toLowerCase();
+  const biz=lower.includes('gym')?'fitness/gym brand':lower.includes('food')||lower.includes('restaurant')?'food business':lower.includes('game')?'game/community':lower.includes('clothing')?'clothing brand':'business';
+  const packs={
+    hooks:['Stop scrolling if you run '+subject+'.','Most '+biz+' owners are missing this one digital move.','I found a faster way to get attention for '+subject+'.','This is how '+subject+' can look more professional in 7 days.'],
+    captions:['Ready to turn attention into clients. AI Opportunities can help with content, websites, automation, and branding.','Your business does not need to look basic online. Let AI Opportunities build the digital side.','More visibility. Better content. Smarter systems. That is the AI Opportunities way.'],
+    ads:['Create a 15-second before/after ad showing the old digital presence, then a glowing AI-powered upgrade.','Run a short offer: Website + content starter pack + AI captions for local businesses.','Use a testimonial-style reel: “I needed more clients, so I upgraded my digital setup.”'],
+    bundle:['Recommended package: Business Launch Kit + Content Strategy + Website Upgrade.','If budget is starter: AI Captions Pack + Poster/Flyer + one AI Video.','If budget is serious: Social Media Automation + Brand Glow Up + Premium Ad Bundle.']
+  };
+  const title={hooks:'Generated Hooks',captions:'Caption Pack',ads:'Ad Ideas',bundle:'Recommended Package'}[type]||'AI Ideas';
+  return title+' for '+subject+'\n\n- '+(packs[type]||packs.hooks).join('\n- ')+'\n\nNext update: add this to your custom order or use it as your next post plan.';
+}
+function aiOppRunTool(type){
+  const input=document.getElementById('toolInput')?.value||'';
+  const out=document.getElementById('toolOutput');
+  if(out){out.innerText='Generating...';setTimeout(()=>{const result=aiOppIdeas(type,input);out.innerText=result;aiOppLogUpdate('Automation Center generated '+({hooks:'hooks',captions:'captions',ads:'ad ideas',bundle:'a recommended package'}[type]||'ideas')+'.');},300)}
+}
+function aiOppEnhancePanels(){
+  const vault=document.querySelector('.vault-panel');
+  if(vault && !document.getElementById('workspaceUpdateFeed')){
+    const title=document.createElement('h3');title.textContent='Live Updates';title.className='updates-title';
+    const feed=document.createElement('div');feed.id='workspaceUpdateFeed';feed.className='update-feed';
+    vault.appendChild(title);vault.appendChild(feed);
+  }
+  document.querySelectorAll('.vault-item').forEach(item=>{item.style.cursor='pointer';item.addEventListener('click',()=>aiOppLogUpdate(item.querySelector('span')?.innerText+' checked. Status: '+item.querySelector('b')?.innerText+'.'))});
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  aiOppEnhancePanels();aiOppSyncWorkspace();aiOppLoadUpdates();
+  const save=document.getElementById('saveWorkspace');if(save)save.addEventListener('click',aiOppSaveWorkspace);
+  const goal=document.getElementById('workspaceGoal');if(goal)goal.addEventListener('change',()=>aiOppUpdateWorkspaceStatus(goal.value));
+  document.querySelectorAll('.tool-buttons button').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();aiOppRunTool(btn.dataset.tool)}));
+  aiOppLogUpdate('Dashboard loaded and ready.');
+});
