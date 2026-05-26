@@ -13,6 +13,22 @@ if(chatToggle)chatToggle.onclick=openChatBox;
 if(closeChat)closeChat.onclick=closeChatBox;
 if(openChat)openChat.onclick=openChatBox;
 
+const buddyBtn=document.getElementById('buddyHelpBtn');
+const buddyOverlay=document.getElementById('buddyOverlay');
+const buddyClose=document.getElementById('buddyClose');
+const buddyFrame=document.getElementById('buddyFrame');
+const buddyHomeBtn=document.getElementById('buddyHomeBtn');
+const buddyReplayBtn=document.getElementById('buddyReplayBtn');
+const buddyVideoSrc='https://drive.google.com/file/d/1Bn70InbcONTHSrXuDNMP6MT9Z_QSS8u3/preview';
+function openBuddyGuide(){if(!buddyOverlay)return;buddyOverlay.classList.add('active');document.body.style.overflow='hidden';if(buddyFrame)buddyFrame.src=buddyVideoSrc}
+function closeBuddyGuide(goHome=false){if(!buddyOverlay)return;buddyOverlay.classList.remove('active');document.body.style.overflow='';if(buddyFrame)buddyFrame.src='';if(goHome){window.location.hash='home';window.scrollTo({top:0,behavior:'smooth'})}}
+if(buddyBtn)buddyBtn.addEventListener('click',openBuddyGuide);
+if(buddyClose)buddyClose.addEventListener('click',()=>closeBuddyGuide(false));
+if(buddyHomeBtn)buddyHomeBtn.addEventListener('click',()=>closeBuddyGuide(true));
+if(buddyReplayBtn)buddyReplayBtn.addEventListener('click',()=>{if(buddyFrame){buddyFrame.src='';setTimeout(()=>buddyFrame.src=buddyVideoSrc,100)}});
+if(buddyOverlay)buddyOverlay.addEventListener('click',e=>{if(e.target===buddyOverlay)closeBuddyGuide(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBuddyGuide(false)});
+
 const messages=document.getElementById('chatMessages');
 const input=document.getElementById('chatInput');
 const send=document.getElementById('sendBtn');
@@ -62,139 +78,34 @@ function localQuote(){
   const q=quantity();
   const details=detailsText();
   if(!details.trim()&&!selectedPackages.length)return '';
-
   const isCard=hasAny(details,['graduation card','grad card','cards','card','invitation','invite']);
   const isBasic=hasAny(details,['basic','simple','template','name swap','photo swap']);
   const isPremium=hasAny(details,['premium','cinematic','animated','animation','motion','heavy','advanced','effects','vfx']);
   const hasSystem=hasAny(details,['website','automation','chatbot','stripe','membership','payment','custom order panel','full package']);
   const isPrinted=hasAny(details,['printing','print','shipping','ship','physical','mailed']);
-
-  if(isCard&&!hasSystem&&!isPrinted){
-    if(isPremium)return addFeeToRange(Math.max(15,q*4),Math.max(25,q*6));
-    if(isBasic)return addFeeToRange(Math.max(5,q*1),Math.max(10,q*2));
-    return addFeeToRange(Math.max(10,Math.round(q*2)),Math.max(15,Math.round(q*3.5)));
-  }
-
-  if(hasAny(details,['flyer','poster','thumbnail','banner','social graphic','graphic','logo','simple edit','photo edit'])&&!hasSystem&&!isPrinted){
-    if(isPremium)return addFeeToRange(35,75);
-    if(q>=5)return addFeeToRange(20,50);
-    return addFeeToRange(10,25);
-  }
-
-  if(details.includes('ai video')&&!hasAny(details,['website','chatbot','automation','stripe','membership'])){
-    if(hasAny(details,['edit','editing','script','marketing','caption']))return addFeeToRange(q*15,q*35);
-    return addFeeToRange(q*5,q*10);
-  }
-
+  if(isCard&&!hasSystem&&!isPrinted){if(isPremium)return addFeeToRange(Math.max(15,q*4),Math.max(25,q*6));if(isBasic)return addFeeToRange(Math.max(5,q*1),Math.max(10,q*2));return addFeeToRange(Math.max(10,Math.round(q*2)),Math.max(15,Math.round(q*3.5)))}
+  if(hasAny(details,['flyer','poster','thumbnail','banner','social graphic','graphic','logo','simple edit','photo edit'])&&!hasSystem&&!isPrinted){if(isPremium)return addFeeToRange(35,75);if(q>=5)return addFeeToRange(20,50);return addFeeToRange(10,25)}
+  if(details.includes('ai video')&&!hasAny(details,['website','chatbot','automation','stripe','membership'])){if(hasAny(details,['edit','editing','script','marketing','caption']))return addFeeToRange(q*15,q*35);return addFeeToRange(q*5,q*10)}
   if(details.includes('website')&&hasAny(details,['chatbot','membership','payment','stripe','custom order','automation']))return addFeeToRange(300,600,'bundle estimate');
   if(details.includes('website'))return hasAny(details,['business','professional'])?addFeeToRange(150,275):addFeeToRange(100,175);
   if(hasAny(details,['automation','workflow','auto reply','social media automation']))return hasAny(details,['multi-step','custom','posting','content'])?addFeeToRange(175,300):addFeeToRange(70,125);
-
-  if(selectedPackages.length){
-    const total=selectedPackages.reduce((sum,p)=>sum+(Number(p.amount)||0),0);
-    if(total>0)return `$${total} estimate`;
-  }
-  return addFeeToRange(10,50);
+  if(selectedPackages.length){const total=selectedPackages.reduce((sum,p)=>sum+(Number(p.amount)||0),0);if(total>0)return `$${total} estimate`}
+  return addFeeToRange(10,50)
 }
-function localReason(price){
-  const d=detailsText();const q=quantity();
-  if(hasAny(d,['graduation card','grad card','cards','card','invitation','invite'])){
-    if(hasAny(d,['basic','simple','template']))return `${q} basic card${q===1?'':'s'} are treated like a simple template/name/photo swap, not website pricing.`;
-    if(hasAny(d,['premium','cinematic','animated','heavy','advanced']))return `${q} premium card${q===1?'':'s'} include heavier design work, so they cost more than basic cards.`;
-    return `${q} custom card${q===1?'':'s'} are priced as personalized graphic work, not a website or full package.`;
-  }
-  if(hasAny(d,['flyer','poster','thumbnail','banner','logo','graphic']))return 'This is graphic design work, so it uses affordable design pricing.';
-  if(d.includes('website'))return 'This is website work, so it uses website pricing instead of graphic pricing.';
-  if(d.includes('automation'))return 'This is automation work, so it uses automation pricing.';
-  if(d.includes('ai video'))return 'This is AI video work, so it uses per-video pricing.';
-  return 'This Easy Yes estimate is based on the request, quantity, speed, and selected options.';
-}
-function budgetNote(price){
-  const total=priceNumber(price);const info=getBudgetInfo();
-  if(info.max!==999999&&total>info.max)return ` This is over the selected ${info.label} budget, so a smaller starter version may be needed.`;
-  if(total>=info.min&&total<=info.max)return ` This fits the selected ${info.label} budget.`;
-  if(total<info.min)return ` This is below your selected ${info.label} budget, so you could keep it simple or add upgrades.`;
-  return ' Final quote may change after review.';
-}
-function addApprovalButton(){
-  let btn=document.getElementById('approveQuoteBtn');
-  if(!btn){btn=document.createElement('a');btn.id='approveQuoteBtn';btn.className='glow-btn';btn.style.marginTop='18px';btn.style.display='inline-block';btn.target='_blank';document.querySelector('.estimate-box')?.appendChild(btn)}
-  btn.href=customDepositLink;btn.innerText='Start review with $5 deposit';
-}
-function syncPackages(){
-  const txt=selectedPackages.length?selectedPackages.map(p=>`${p.service} ($${p.amount})`).join(', '):'Nothing selected yet.';
-  if(selectedPackagesText)selectedPackagesText.innerText=txt;
-  if(selectedPackagesInput)selectedPackagesInput.value=selectedPackages.map(p=>`${p.service} - $${p.amount}`).join(', ');
-  const details=document.getElementById('details')?.value.trim()||'';
-  if(servicesInput)servicesInput.value=details||selectedPackages.map(p=>p.service).join(', ');
-  updateBuyNow();
-}
-function saveForm(){
-  ['quantity','frequency','timeline','budget','details'].forEach(id=>{const el=document.getElementById(id);if(el)localStorage.setItem('aiopp_'+id,el.value)});
-  document.querySelectorAll('input[name="name"],input[name="email"]').forEach(el=>localStorage.setItem('aiopp_'+el.name,el.value));
-  const name=document.querySelector('input[name="name"]')?.value.trim();const email=document.querySelector('input[name="email"]')?.value.trim();const old=getProfile();
-  if(name||email)setProfile({name:name||old.name||'',email:email||old.email||'',memberStatus:old.memberStatus||detectMemberStatus()});
-  localStorage.setItem('aiopp_packages',JSON.stringify(selectedPackages));
-}
-function applySaved(){
-  ['quantity','frequency','timeline','budget','details'].forEach(id=>{const el=document.getElementById(id);const val=localStorage.getItem('aiopp_'+id);if(el&&val)el.value=val});
-  document.querySelectorAll('input[name="name"],input[name="email"]').forEach(el=>{const val=localStorage.getItem('aiopp_'+el.name);if(val)el.value=val});
-  try{selectedPackages=JSON.parse(localStorage.getItem('aiopp_packages')||'[]')}catch(e){selectedPackages=[]}
-  document.querySelectorAll('.package-card').forEach(card=>{card.classList.toggle('selected',selectedPackages.some(p=>p.service===card.dataset.service))});
-  syncPackages();
-}
-function updateBuyNow(){
-  if(!prebuiltBuyNow)return;
-  if(!selectedPackages.length){prebuiltBuyNow.href='#prebuilt';prebuiltBuyNow.innerText='Buy Now';return}
-  const total=selectedPackages.reduce((sum,p)=>sum+(Number(p.amount)||0),0);
-  prebuiltBuyNow.href='#checkout';prebuiltBuyNow.innerText=selectedPackages.length===1?`Buy ${selectedPackages[0].service} - $${total}`:`Buy Selected - $${total}`;
-}
-async function goToPrebuiltCheckout(){
-  if(!selectedPackages.length){alert('Pick at least one prebuilt service first.');return}
-  const total=selectedPackages.reduce((sum,p)=>sum+(Number(p.amount)||0),0);
-  prebuiltBuyNow.innerText='Creating checkout...';
-  try{
-    const res=await fetch('/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:selectedPackages,customer:getProfile(),memberStatus:detectMemberStatus()})});
-    const data=await res.json();
-    if(data.url){window.location.href=data.url;return}
-    alert(data.error||'Checkout could not be created.');
-  }catch(e){alert('Checkout could not be created. Make sure Stripe is connected.');}
-  finally{prebuiltBuyNow.innerText=`Buy Selected - $${total}`}
-}
+function localReason(price){const d=detailsText();const q=quantity();if(hasAny(d,['graduation card','grad card','cards','card','invitation','invite'])){if(hasAny(d,['basic','simple','template']))return `${q} basic card${q===1?'':'s'} are treated like a simple template/name/photo swap, not website pricing.`;if(hasAny(d,['premium','cinematic','animated','heavy','advanced']))return `${q} premium card${q===1?'':'s'} include heavier design work, so they cost more than basic cards.`;return `${q} custom card${q===1?'':'s'} are priced as personalized graphic work, not a website or full package.`}if(hasAny(d,['flyer','poster','thumbnail','banner','logo','graphic']))return 'This is graphic design work, so it uses affordable design pricing.';if(d.includes('website'))return 'This is website work, so it uses website pricing instead of graphic pricing.';if(d.includes('automation'))return 'This is automation work, so it uses automation pricing.';if(d.includes('ai video'))return 'This is AI video work, so it uses per-video pricing.';return 'This Easy Yes estimate is based on the request, quantity, speed, and selected options.'}
+function budgetNote(price){const total=priceNumber(price);const info=getBudgetInfo();if(info.max!==999999&&total>info.max)return ` This is over the selected ${info.label} budget, so a smaller starter version may be needed.`;if(total>=info.min&&total<=info.max)return ` This fits the selected ${info.label} budget.`;if(total<info.min)return ` This is below your selected ${info.label} budget, so you could keep it simple or add upgrades.`;return ' Final quote may change after review.'}
+function addApprovalButton(){let btn=document.getElementById('approveQuoteBtn');if(!btn){btn=document.createElement('a');btn.id='approveQuoteBtn';btn.className='glow-btn';btn.style.marginTop='18px';btn.style.display='inline-block';btn.target='_blank';document.querySelector('.estimate-box')?.appendChild(btn)}btn.href=customDepositLink;btn.innerText='Start review with $5 deposit'}
+function syncPackages(){const txt=selectedPackages.length?selectedPackages.map(p=>`${p.service} ($${p.amount})`).join(', '):'Nothing selected yet.';if(selectedPackagesText)selectedPackagesText.innerText=txt;if(selectedPackagesInput)selectedPackagesInput.value=selectedPackages.map(p=>`${p.service} - $${p.amount}`).join(', ');const details=document.getElementById('details')?.value.trim()||'';if(servicesInput)servicesInput.value=details||selectedPackages.map(p=>p.service).join(', ');const prebuiltSelectedInput=document.getElementById('prebuiltSelectedInput');if(prebuiltSelectedInput)prebuiltSelectedInput.value=txt;updateBuyNow()}
+function saveForm(){['quantity','frequency','timeline','budget','details'].forEach(id=>{const el=document.getElementById(id);if(el)localStorage.setItem('aiopp_'+id,el.value)});document.querySelectorAll('input[name="name"],input[name="email"]').forEach(el=>localStorage.setItem('aiopp_'+el.name,el.value));const name=document.querySelector('input[name="name"]')?.value.trim();const email=document.querySelector('input[name="email"]')?.value.trim();const old=getProfile();if(name||email)setProfile({name:name||old.name||'',email:email||old.email||'',memberStatus:old.memberStatus||detectMemberStatus()});localStorage.setItem('aiopp_packages',JSON.stringify(selectedPackages))}
+function applySaved(){['quantity','frequency','timeline','budget','details'].forEach(id=>{const el=document.getElementById(id);const val=localStorage.getItem('aiopp_'+id);if(el&&val)el.value=val});document.querySelectorAll('input[name="name"],input[name="email"]').forEach(el=>{const val=localStorage.getItem('aiopp_'+el.name);if(val)el.value=val});try{selectedPackages=JSON.parse(localStorage.getItem('aiopp_packages')||'[]')}catch(e){selectedPackages=[]}document.querySelectorAll('.package-card').forEach(card=>{card.classList.toggle('selected',selectedPackages.some(p=>p.service===card.dataset.service))});syncPackages()}
+function updateBuyNow(){if(!prebuiltBuyNow)return;if(!selectedPackages.length){prebuiltBuyNow.href='#prebuilt';prebuiltBuyNow.innerText='Buy Now';return}const total=selectedPackages.reduce((sum,p)=>sum+(Number(p.amount)||0),0);prebuiltBuyNow.href='#checkout';prebuiltBuyNow.innerText=selectedPackages.length===1?`Buy ${selectedPackages[0].service} - $${total}`:`Buy Selected - $${total}`}
+async function goToPrebuiltCheckout(){if(!selectedPackages.length){alert('Pick at least one prebuilt service first.');return}const total=selectedPackages.reduce((sum,p)=>sum+(Number(p.amount)||0),0);prebuiltBuyNow.innerText='Creating checkout...';try{const res=await fetch('/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:selectedPackages,customer:getProfile(),memberStatus:detectMemberStatus()})});const data=await res.json();if(data.url){window.location.href=data.url;return}alert(data.error||'Checkout could not be created.')}catch(e){alert('Checkout could not be created. Make sure Stripe is connected.')}finally{prebuiltBuyNow.innerText=`Buy Selected - $${total}`}}
 if(prebuiltBuyNow)prebuiltBuyNow.addEventListener('click',e=>{e.preventDefault();goToPrebuiltCheckout()});
 if(clearCartBtn)clearCartBtn.addEventListener('click',e=>{e.preventDefault();selectedPackages=[];localStorage.removeItem('aiopp_packages');document.querySelectorAll('.package-card').forEach(card=>card.classList.remove('selected'));syncPackages();updateEstimate()});
 document.querySelectorAll('.package-card').forEach(card=>{card.addEventListener('click',e=>{e.preventDefault();const service=card.dataset.service;const amount=Number(card.dataset.price)||5;const exists=selectedPackages.find(p=>p.service===service);if(exists){selectedPackages=selectedPackages.filter(p=>p.service!==service);card.classList.remove('selected')}else{selectedPackages.push({service,amount});card.classList.add('selected')}syncPackages();saveForm();updateEstimate()})});
-async function updateEstimate(){
-  clearTimeout(quoteTimer);
-  quoteTimer=setTimeout(async()=>{
-    syncPackages();saveForm();
-    const details=document.getElementById('details')?.value||'';
-    if(!details.trim()&&!selectedPackages.length){
-      if(estimateText)estimateText.innerText='Type your request or pick a prebuilt service. Real AI will create an Easy Yes price.';
-      if(aiReason)aiReason.innerText='The quote uses custom request, packages, quantity, frequency, speed, and budget.';
-      return;
-    }
-    const protectedPrice=localQuote();
-    let finalPrice=protectedPrice;
-    let reason=localReason(finalPrice);
-    if(estimateText)estimateText.innerText=`Estimated Easy Yes price: ${finalPrice}`;
-    if(aiReason)aiReason.innerText=reason+' '+budgetNote(finalPrice)+' Final quote can change after manual review. The $5 deposit only starts review, it is not the full project payment.';
-    if(estimateInput)estimateInput.value=finalPrice;
-    addApprovalButton();
-    try{
-      const res=await fetch('/quote-ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({selected:selectedPackages,quantity:quantity(),frequency:frequency(),timeline:document.getElementById('timeline')?.value||'no-rush',budget:document.getElementById('budget')?.value||'starter',details,deliveryFee:deliveryFee(),customer:getProfile(),memberStatus:detectMemberStatus()})});
-      const data=await res.json();
-      if(data.price){
-        finalPrice=data.price;
-        reason=data.reason||reason;
-        if(estimateText)estimateText.innerText=`Estimated Easy Yes price: ${finalPrice}`;
-        if(aiReason)aiReason.innerText=reason+' '+budgetNote(finalPrice)+' Final quote can change after manual review. The $5 deposit only starts review, it is not the full project payment.';
-        if(estimateInput)estimateInput.value=finalPrice;
-      }
-    }catch(e){}
-    lastEstimate=finalPrice;
-  },350);
-}
+async function updateEstimate(){clearTimeout(quoteTimer);quoteTimer=setTimeout(async()=>{syncPackages();saveForm();const details=document.getElementById('details')?.value||'';if(!details.trim()&&!selectedPackages.length){if(estimateText)estimateText.innerText='Type your request or pick a prebuilt service. Real AI will create an Easy Yes price.';if(aiReason)aiReason.innerText='The quote uses custom request, packages, quantity, frequency, speed, and budget.';return}const protectedPrice=localQuote();let finalPrice=protectedPrice;let reason=localReason(finalPrice);if(estimateText)estimateText.innerText=`Estimated Easy Yes price: ${finalPrice}`;if(aiReason)aiReason.innerText=reason+' '+budgetNote(finalPrice)+' Final quote can change after manual review. The $5 deposit only starts review, it is not the full project payment.';if(estimateInput)estimateInput.value=finalPrice;addApprovalButton();try{const res=await fetch('/quote-ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({selected:selectedPackages,quantity:quantity(),frequency:frequency(),timeline:document.getElementById('timeline')?.value||'no-rush',budget:document.getElementById('budget')?.value||'starter',details,deliveryFee:deliveryFee(),customer:getProfile(),memberStatus:detectMemberStatus()})});const data=await res.json();if(data.price){finalPrice=data.price;reason=data.reason||reason;if(estimateText)estimateText.innerText=`Estimated Easy Yes price: ${finalPrice}`;if(aiReason)aiReason.innerText=reason+' '+budgetNote(finalPrice)+' Final quote can change after manual review. The $5 deposit only starts review, it is not the full project payment.';if(estimateInput)estimateInput.value=finalPrice}}catch(e){}lastEstimate=finalPrice},350)}
 document.querySelectorAll('input,textarea,select').forEach(el=>{el.addEventListener('change',updateEstimate);el.addEventListener('input',updateEstimate);el.addEventListener('input',saveForm)});
 if(form){form.addEventListener('submit',async e=>{e.preventDefault();syncPackages();saveForm();await updateEstimate();setTimeout(async()=>{const data=new FormData(form);data.append('member_status',detectMemberStatus());if(estimateInput&&!estimateInput.value)estimateInput.value=lastEstimate||localQuote();try{await fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(data).toString()});if(success){success.style.display='block';success.innerText='Order submitted. The $5 deposit starts review, and the final quote may change after manual review.'}}catch(err){if(success){success.style.display='block';success.innerText='Order saved on this page. Try submitting again or email the details.'}}},450)})}
+const prebuiltForm=document.getElementById('prebuiltForm');const prebuiltSuccess=document.getElementById('prebuiltSuccess');if(prebuiltForm){prebuiltForm.addEventListener('submit',async e=>{e.preventDefault();syncPackages();const data=new FormData(prebuiltForm);try{await fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(data).toString()});if(prebuiltSuccess){prebuiltSuccess.style.display='block';prebuiltSuccess.innerText='Service details sent. I will review your request next.'}}catch(err){if(prebuiltSuccess){prebuiltSuccess.style.display='block';prebuiltSuccess.innerText='Details saved on this page. Try again or email the details.'}}})}
+const reviewForm=document.getElementById('reviewForm');const reviewSuccess=document.getElementById('reviewSuccess');if(reviewForm){reviewForm.addEventListener('submit',async e=>{e.preventDefault();const data=new FormData(reviewForm);try{await fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(data).toString()});if(reviewSuccess){reviewSuccess.style.display='block';reviewSuccess.innerText='Review submitted. Thank you!'}}catch(err){if(reviewSuccess){reviewSuccess.style.display='block';reviewSuccess.innerText='Review saved on this page. Try again if needed.'}}})}
 applySaved();updateEstimate();
