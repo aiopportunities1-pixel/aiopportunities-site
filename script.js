@@ -103,17 +103,88 @@ function setupPrebuilt(){
 
 function setupChat(){
   const chatbot = $('chatbot');
-  const open = () => { if(chatbot) chatbot.style.display = 'flex'; };
-  const close = () => { if(chatbot) chatbot.style.display = 'none'; };
+  const messages = $('chatMessages');
+  const input = $('chatInput');
+  const send = $('sendBtn');
+  const badge = $('chatBadge');
+
+  function hideBadge(){ if(badge) badge.style.display='none'; }
+  function open(){ if(chatbot) chatbot.style.display = 'flex'; hideBadge(); }
+  function close(){ if(chatbot) chatbot.style.display = 'none'; }
+  function addMsg(text, cls){
+    if(!messages) return;
+    const div = document.createElement('div');
+    div.className = cls;
+    div.innerText = text;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+  function smartResponse(text){
+    const lower = String(text || '').toLowerCase();
+    if(lower.includes('price') || lower.includes('cost') || lower.includes('charge')) return 'Pricing depends on the project. Small edits can start low, custom websites and automations cost more. Use the order form for an Easy Yes quote.';
+    if(lower.includes('website')) return 'I can help with landing pages, business websites, custom order panels, checkout buttons, and chatbot-style support.';
+    if(lower.includes('automation')) return 'Automation can help with posting plans, lead capture, email workflows, reminders, and client follow-ups.';
+    if(lower.includes('membership')) return 'Memberships include Discord access, resources, discounts, meetings, and priority help depending on the plan.';
+    if(lower.includes('video') || lower.includes('ai video')) return 'AI videos can be promos, ads, reels, trailers, or social posts. Share your idea and style in the order form.';
+    if(lower.includes('order') || lower.includes('custom')) return 'Go to Custom Orders, type exactly what you need, and submit it so AI Opportunities can review and quote it.';
+    return 'I can help with AI videos, websites, automation, graphics, editing, memberships, and custom digital projects. Tell me what you need.';
+  }
+  function sendMessage(){
+    const val = (input?.value || '').trim();
+    if(!val) return;
+    addMsg(val, 'user-message');
+    if(input) input.value = '';
+    setTimeout(() => addMsg(smartResponse(val), 'bot-message'), 250);
+  }
+
   if($('chatToggle')) $('chatToggle').onclick = open;
   if($('openChat')) $('openChat').onclick = open;
   if($('closeChat')) $('closeChat').onclick = close;
+  if(send) send.onclick = sendMessage;
+  if(input) input.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
+  all('.chat-quick-buttons button').forEach(btn => btn.addEventListener('click', () => {
+    open();
+    addMsg(btn.innerText, 'user-message');
+    setTimeout(() => addMsg(smartResponse(btn.innerText), 'bot-message'), 250);
+  }));
+}
+
+function setupBuddyJai(){
+  const btn = $('buddyHelpBtn');
+  const overlay = $('buddyOverlay');
+  const closeBtn = $('buddyClose');
+  const frame = $('buddyFrame');
+  const homeBtn = $('buddyHomeBtn');
+  const replayBtn = $('buddyReplayBtn');
+  const videoSrc = 'https://drive.google.com/file/d/1Bn70InbcONTHSrXuDNMP6MT9Z_QSS8u3/preview';
+
+  function openBuddy(){
+    if(!overlay) return;
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    if(frame && !frame.src) frame.src = videoSrc;
+  }
+  function closeBuddy(goHome=false){
+    if(!overlay) return;
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    if(frame) frame.src = '';
+    if(goHome){ window.location.hash = 'home'; window.scrollTo({top:0, behavior:'smooth'}); }
+  }
+
+  if(btn) btn.addEventListener('click', openBuddy);
+  if(closeBtn) closeBtn.addEventListener('click', () => closeBuddy(false));
+  if(homeBtn) homeBtn.addEventListener('click', () => closeBuddy(true));
+  if(replayBtn) replayBtn.addEventListener('click', () => { if(frame){ frame.src=''; setTimeout(() => frame.src = videoSrc, 100); } });
+  if(overlay) overlay.addEventListener('click', e => { if(e.target === overlay) closeBuddy(false); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeBuddy(false); });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   setupCustomOrders();
   setupPrebuilt();
   setupChat();
+  setupBuddyJai();
   all('input, textarea, select').forEach(el => { el.addEventListener('input', () => { syncPackages(); estimate(); }); el.addEventListener('change', () => { syncPackages(); estimate(); }); });
   syncPackages(); estimate();
 });
