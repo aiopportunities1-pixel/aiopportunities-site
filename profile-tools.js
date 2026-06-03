@@ -1,7 +1,4 @@
 document.addEventListener('DOMContentLoaded',function(){
-var fix=document.createElement('style');
-fix.textContent='.human-holo,.holo-person,.holo-camera,.holo-chat-line{display:none!important}.holo-social{width:170px!important;height:135px!important;opacity:.65!important;filter:drop-shadow(0 0 18px rgba(56,213,255,.45))!important}.holo-social:before{content:"";position:absolute;left:50%;top:20px;width:82px;height:82px;transform:translateX(-50%);border-radius:50%;border:1px solid rgba(56,213,255,.55);background:radial-gradient(circle,rgba(56,213,255,.25),rgba(69,255,147,.08),transparent 70%);box-shadow:0 0 30px rgba(56,213,255,.35),inset 0 0 20px rgba(56,213,255,.16)}.holo-social:after{content:"AI SIGNAL";position:absolute;left:50%;top:52px;transform:translateX(-50%);font-family:Orbitron,sans-serif;font-size:.62rem;letter-spacing:1.5px;color:rgba(224,252,255,.8);text-shadow:0 0 14px rgba(56,213,255,.75)}.holo-caption{bottom:3px!important;min-width:135px!important;font-size:.58rem!important}.holo-agent{opacity:.55!important}.holo-body{border-radius:28px!important}.holo-arm{display:none!important}';
-document.head.appendChild(fix);
 var chat=document.getElementById('chatbot'),msgs=document.getElementById('chatMessages'),inp=document.getElementById('chatInput'),send=document.getElementById('sendBtn');
 var toggle=document.getElementById('chatToggle'),openBtn=document.getElementById('openChat'),closeBtn=document.getElementById('closeChat');
 var history=[];
