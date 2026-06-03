@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded',function(){
 var buddyCss=document.createElement('link');buddyCss.rel='stylesheet';buddyCss.href='buddy-only.css';document.head.appendChild(buddyCss);
+var buddyScript=document.createElement('script');buddyScript.src='buddy-hologram.js';buddyScript.defer=true;document.body.appendChild(buddyScript);
 var chat=document.getElementById('chatbot'),msgs=document.getElementById('chatMessages'),inp=document.getElementById('chatInput'),send=document.getElementById('sendBtn');
 var toggle=document.getElementById('chatToggle'),openBtn=document.getElementById('openChat'),closeBtn=document.getElementById('closeChat');
 var history=[];
