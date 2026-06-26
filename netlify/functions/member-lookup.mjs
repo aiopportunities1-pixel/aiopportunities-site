@@ -5,7 +5,7 @@ export default async (req) => {
   const email = String(url.searchParams.get('email') || '').trim().toLowerCase();
 
   if (!email) {
-    return new Response(JSON.stringify({ ok: false, tier: 'Guest / Not verified' }), {
+    return new Response(JSON.stringify({ ok: false, tier: 'Guest / Not verified', points: 0 }), {
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -17,7 +17,12 @@ export default async (req) => {
     ok: true,
     tier: record?.tier || 'Guest / Not verified',
     active: record?.active || false,
-    email
+    email,
+    points: Number(record?.points || 0),
+    lifetimeSpend: Number(record?.lifetimeSpend || 0),
+    rewards: record?.rewards || [],
+    updatedAt: record?.updatedAt || null,
+    subscriptionId: record?.subscriptionId || null
   }), {
     headers: { 'Content-Type': 'application/json' }
   });
