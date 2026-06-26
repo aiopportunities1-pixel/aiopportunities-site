@@ -41,6 +41,48 @@ function estimate(){
   }
 }
 
+function ensureHidden(form, name){
+  let input = form.querySelector(`[name="${name}"]`);
+  if(!input){
+    input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    form.appendChild(input);
+  }
+  return input;
+}
+
+async function lookupMembershipStatus(email){
+  const clean = String(email || '').trim().toLowerCase();
+  if(!clean) return {tier:'Guest / Not verified', active:false, note:'No customer email entered before order details were sent.'};
+  try{
+    const res = await fetch(`/member-lookup?email=${encodeURIComponent(clean)}`);
+    if(!res.ok) throw new Error('lookup failed');
+    const data = await res.json();
+    return {
+      tier: data.tier || 'Guest / Not verified',
+      active: !!data.active,
+      email: clean,
+      note: data.active ? `Verified active membership for ${clean}.` : `No active membership found for ${clean}.`
+    };
+  }catch(err){
+    console.error(err);
+    return {tier:'Guest / Not verified', active:false, email:clean, note:'Membership lookup failed before form email was sent.'};
+  }
+}
+
+async function attachMembershipStatus(form){
+  const email = form.querySelector('[name="email"]')?.value || '';
+  const status = await lookupMembershipStatus(email);
+  const tierText = status.active ? status.tier : 'Guest / Not verified';
+  ensureHidden(form,'membership_status').value = tierText;
+  ensureHidden(form,'membership_active').value = status.active ? 'Yes' : 'No';
+  ensureHidden(form,'membership_email_checked').value = status.email || String(email || '').trim().toLowerCase();
+  ensureHidden(form,'membership_note').value = status.note || '';
+  ensureHidden(form,'membership_discount').value = tierText.includes('Master') ? 'Master member gets 15% off every AI Opportunities order.' : 'No Master discount verified.';
+  return status;
+}
+
 async function sendNetlifyForm(form){
   const data = new FormData(form);
   if(!data.get('form-name') && form.name) data.append('form-name', form.name);
@@ -70,11 +112,13 @@ function setupCustomOrders(){
     estimate();
     if($('servicesInput') && $('details')) $('servicesInput').value = $('details').value;
     if($('estimatedPriceInput') && !$('estimatedPriceInput').value) $('estimatedPriceInput').value = 'Manual review needed';
-    saveStatus('Sending order details first...');
+    saveStatus('Checking membership status...');
+    const member = await attachMembershipStatus(form);
+    saveStatus(`Membership status added: ${member.active ? member.tier : 'Guest / Not verified'}. Sending order details...`);
     try{
       const res = await sendNetlifyForm(form);
       if(!res.ok) throw new Error('form failed');
-      saveStatus('Order details sent. Opening deposit page...');
+      saveStatus('Order details sent with membership status. Opening deposit page...');
       window.location.href = STRIPE_DEPOSIT;
     }catch(err){
       console.error(err);
@@ -96,7 +140,13 @@ function setupPrebuilt(){
   const form = $('prebuiltForm');
   if(form) form.addEventListener('submit', async e => {
     e.preventDefault(); syncPackages();
-    try{ const res = await sendNetlifyForm(form); if(!res.ok) throw new Error('fail'); showStatus('prebuiltSuccess','Service details sent.'); }
+    showStatus('prebuiltSuccess','Checking membership status...');
+    const member = await attachMembershipStatus(form);
+    try{
+      const res = await sendNetlifyForm(form);
+      if(!res.ok) throw new Error('fail');
+      showStatus('prebuiltSuccess',`Service details sent with membership status: ${member.active ? member.tier : 'Guest / Not verified'}.`);
+    }
     catch(err){ showStatus('prebuiltSuccess','Service details did not send. Try again.'); }
   });
 }
