@@ -1,6 +1,11 @@
 /* AI Opportunities membership upgrade - injected by ChatGPT */
 (function(){
-  const MASTER_LINK='https://buy.stripe.com/aFa6oG4g18rb6HV9IV8Zq06';
+  const LINKS={
+    'Supporter':'https://buy.stripe.com/3cIbJ0fYJazjean4oB8Zq0x',
+    'Supporter+':'https://buy.stripe.com/9B69AS8whbDngivcV78Zq0w',
+    'Master':'https://buy.stripe.com/3cIfZgh2N0YJ1nBaMZ8Zq0v'
+  };
+  const MASTER_LINK=LINKS.Master;
   function money(n){return '$'+Number(n||0).toFixed(2)}
   function injectStyles(){
     if(document.getElementById('membershipUpgradeStyles'))return;
@@ -8,14 +13,17 @@
     css.id='membershipUpgradeStyles';
     css.textContent=`
       .upgraded-memberships{max-width:1320px;margin:auto;padding:80px 5%;}
-      .membership-topper{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:stretch;margin-bottom:32px;}
-      .master-side-callout,.member-benefits,.savings-calculator,.comparison-wrap,.why-master{background:linear-gradient(145deg,rgba(7,22,47,.96),rgba(4,41,27,.9));border:1px solid rgba(69,255,147,.28);border-radius:28px;box-shadow:0 18px 55px rgba(0,0,0,.28),0 0 28px rgba(69,255,147,.12);padding:28px;}
-      .master-side-callout{position:relative;overflow:hidden;border:2px solid rgba(69,255,147,.45);}
-      .master-side-callout:before{content:"";position:absolute;inset:-2px;background:linear-gradient(120deg,transparent,rgba(69,255,147,.14),transparent);transform:translateX(-100%);animation:masterSheen 4s infinite;pointer-events:none;}
+      .membership-topper{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;align-items:stretch;margin-bottom:32px;}
+      .master-side-callout,.member-benefits,.savings-calculator,.comparison-wrap,.why-master,.master-benefits-panel{background:linear-gradient(145deg,rgba(7,22,47,.96),rgba(4,41,27,.9));border:1px solid rgba(69,255,147,.28);border-radius:28px;box-shadow:0 18px 55px rgba(0,0,0,.28),0 0 28px rgba(69,255,147,.12);padding:28px;}
+      .master-side-callout,.master-benefits-panel{position:relative;overflow:hidden;border:2px solid rgba(69,255,147,.45);}
+      .master-side-callout:before,.master-benefits-panel:before{content:"";position:absolute;inset:-2px;background:linear-gradient(120deg,transparent,rgba(69,255,147,.14),transparent);transform:translateX(-100%);animation:masterSheen 4s infinite;pointer-events:none;}
       @keyframes masterSheen{60%,100%{transform:translateX(100%)}}
-      .master-side-callout h3,.member-benefits h3,.why-master h3{font-size:clamp(1.55rem,3vw,2.35rem);margin:0 0 10px;color:#fff;}
-      .master-side-callout strong,.savings-stat strong{display:block;color:#45ff93;font-size:clamp(2rem,5vw,4rem);line-height:1;margin:14px 0;text-shadow:0 0 24px rgba(69,255,147,.3);}
-      .master-side-callout p,.member-benefits p,.why-master p{color:#c8d8ea;line-height:1.7;}
+      .master-side-callout h3,.master-benefits-panel h3,.member-benefits h3,.why-master h3{font-size:clamp(1.55rem,3vw,2.35rem);margin:0 0 10px;color:#fff;}
+      .master-side-callout strong,.master-benefits-panel strong,.savings-stat strong{display:block;color:#45ff93;font-size:clamp(2rem,5vw,4rem);line-height:1;margin:14px 0;text-shadow:0 0 24px rgba(69,255,147,.3);}
+      .master-side-callout p,.master-benefits-panel p,.member-benefits p,.why-master p{color:#c8d8ea;line-height:1.7;}
+      .master-benefit-list{display:grid;gap:10px;margin:18px 0 22px;}
+      .master-benefit-list div{display:flex;gap:10px;align-items:center;background:rgba(2,6,23,.48);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:13px 14px;color:#e8f7ff;font-weight:850;}
+      .master-benefit-list b{color:#45ff93;}
       .service-chip-row{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0;}
       .service-chip-row span,.plan-badge{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(69,255,147,.28);background:rgba(69,255,147,.09);color:#eafff3;border-radius:999px;padding:9px 12px;font-weight:800;font-size:.9rem;}
       .upgraded-grid{grid-template-columns:repeat(3,minmax(260px,1fr));align-items:stretch;}
@@ -57,7 +65,8 @@
     document.head.appendChild(css);
   }
   function planCard(name,price,items,extraClass,badge){
-    return `<div class="membership-card accessible-card ${extraClass||''}">${badge||''}<h3>${name}</h3><h1>$${price}<span>/month</span></h1><ul>${items.map(x=>`<li>${x}</li>`).join('')}</ul><a href="${MASTER_LINK}" target="_blank" aria-label="Join ${name} membership">${name==='Master'?'Become a Master Member':'Join '+name}</a></div>`;
+    const link=LINKS[name]||MASTER_LINK;
+    return `<div class="membership-card accessible-card ${extraClass||''}">${badge||''}<h3>${name}</h3><h1>$${price}<span>/month</span></h1><ul>${items.map(x=>`<li>${x}</li>`).join('')}</ul><a href="${link}" target="_blank" aria-label="Join ${name} membership">${name==='Master'?'Become a Master Member':'Join '+name}</a></div>`;
   }
   function renderMemberships(){
     const section=document.getElementById('memberships');
@@ -66,7 +75,7 @@
     section.innerHTML=`
       <div class="membership-topper">
         <div class="section-head"><span class="kicker">MEMBERSHIP PLANS</span><h2>Choose the level that fits your grind.</h2><p>Monthly plans with real perks, better access, business resources, and savings on AI Opportunities services.</p></div>
-        <div class="master-side-callout"><h3>Get the Master Plan membership for 15% off your order.</h3><strong>15% OFF</strong><p>Master members save on websites, AI videos, chatbots, automations, social media, editing, and every AI Opportunities digital service.</p><div class="service-chip-row"><span>Websites</span><span>AI Videos</span><span>Chatbots</span><span>Automations</span><span>Editing</span></div><a href="${MASTER_LINK}" target="_blank" class="glow-btn">Become Master →</a></div>
+        <div class="master-benefits-panel"><h3>💎 Why Choose Master?</h3><strong>15% OFF</strong><p>Master is for people who want the best access, fastest help, and real savings every time they order.</p><div class="master-benefit-list"><div>💸 <b>15% OFF</b> every AI Opportunities order</div><div>⚡ Priority support and fastest response time</div><div>📈 Business strategy breakdowns</div><div>🤝 Direct project guidance</div><div>🎖️ VIP Discord role</div><div>✅ Everything included in Supporter+</div></div><a href="${MASTER_LINK}" target="_blank" class="glow-btn">Become a Master Member →</a></div>
       </div>
       <div class="membership-grid upgraded-grid">
         ${planCard('Supporter',20,['Discord Community Access','Weekly AI Money Methods','Exclusive AI Tips','Basic Service Discounts','Members-Only Announcements'],'','<span class="plan-badge">Starter Access</span>')}
